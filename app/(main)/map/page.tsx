@@ -94,8 +94,8 @@ function MapContent() {
     checkAdmin();
   }, []);
 
-  const filteredClubs = activeCategory === 'All' 
-    ? clubs 
+  const filteredClubs = activeCategory === 'All'
+    ? clubs
     : clubs.filter(c => c.category === activeCategory || (c as any).category === activeCategory);
 
   // Handle URL selection
@@ -152,20 +152,20 @@ function MapContent() {
     }
 
     const isFav = favorites.includes(clubId);
-    
+
     if (isFav) {
       const { error } = await supabase
         .from('favorites')
         .delete()
         .eq('user_id', user.id)
         .eq('club_id', clubId);
-      
+
       if (!error) setFavorites(prev => prev.filter(id => id !== clubId));
     } else {
       const { error } = await supabase
         .from('favorites')
         .insert({ user_id: user.id, club_id: clubId });
-      
+
       if (!error) setFavorites(prev => [...prev, clubId]);
     }
   };
@@ -173,7 +173,7 @@ function MapContent() {
   const fetchClubs = async () => {
     try {
       setLoading(true);
-      
+
       // 1. Fetch Clubs
       const { data: clubsData, error: clubsError } = await supabase.from('clubs').select('*');
       if (clubsError) throw clubsError;
@@ -187,7 +187,7 @@ function MapContent() {
         const { data: goingData, error: goingError } = await supabase.from('event_going').select('event_id');
         if (!goingError && goingData) {
           const hypeMap: Record<string, number> = {};
-          
+
           // Map event_id to club_id
           const eventToClub: Record<string, string> = {};
           eventsData.forEach(ev => eventToClub[ev.id] = ev.club_id);
@@ -221,14 +221,14 @@ function MapContent() {
             className="bg-transparent border-none text-white text-sm focus:ring-0 w-full placeholder:text-zinc-500 font-medium"
           />
         </div>
-        <button 
+        <button
           onClick={handleLocateMe}
           className="bg-black/60 backdrop-blur-xl text-white p-4 rounded-2xl shadow-2xl border border-white/10 hover:bg-white hover:text-black transition-all active:scale-95 flex items-center justify-center"
         >
           <MapPin size={20} className="rotate-45" /> {/* Generic crosshair-like look or just MapPin */}
         </button>
         {isAdmin && (
-          <button 
+          <button
             onClick={() => {
               setEditData(null);
               setShowAddModal(true);
@@ -248,22 +248,21 @@ function MapContent() {
       )}
 
       <div className="w-full h-full">
-          {/* Category Filters */}
-          <div className="absolute top-24 left-0 right-0 z-10 px-6 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shadow-2xl ${
-                  activeCategory === cat 
-                    ? 'bg-white text-black border-white' 
-                    : 'bg-black/60 backdrop-blur-xl text-zinc-400 border-white/5 hover:border-white/20'
+        {/* Category Filters */}
+        <div className="absolute top-24 left-0 right-0 z-10 px-6 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shadow-2xl ${activeCategory === cat
+                  ? 'bg-white text-black border-white'
+                  : 'bg-black/60 backdrop-blur-xl text-zinc-400 border-white/5 hover:border-white/20'
                 }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
 
         <Map
           ref={mapRef}
@@ -272,6 +271,7 @@ function MapContent() {
           mapStyle="mapbox://styles/mapbox/dark-v11"
           mapboxAccessToken={MAPBOX_TOKEN}
           style={{ width: '100%', height: '100%' }}
+          preserveDrawingBuffer={true}
           onError={(e) => {
             console.error('Mapbox Error:', e.error);
             setErrorMsg(`Map Sync Exception: ${e.error?.message?.substring(0, 30)}...`);
@@ -332,7 +332,7 @@ function MapContent() {
             >
               <div className="bg-zinc-950/95 backdrop-blur-3xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 w-[240px] relative">
                 {/* Close Button - more prominent */}
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedClub(null);
@@ -344,7 +344,7 @@ function MapContent() {
 
                 {/* Edit Button for Admin */}
                 {isAdmin && (
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditData(selectedClub);
@@ -359,8 +359,8 @@ function MapContent() {
                 {/* Card Image */}
                 <div className="relative h-32 w-full bg-zinc-900 group/img">
                   {selectedClub.image_url ? (
-                    <img 
-                      src={selectedClub.image_url} 
+                    <img
+                      src={selectedClub.image_url}
                       alt="" // Empty alt to prevent browser showing broken icon text if URL is invalid
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -369,7 +369,7 @@ function MapContent() {
                       }}
                     />
                   ) : null}
-                  
+
                   {/* Elegant Placeholder for missing/broken images */}
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-950">
                     <MapPin size={32} className="text-white/10" />
@@ -382,16 +382,15 @@ function MapContent() {
                   </div>
 
                   {/* Favorite Toggle Overlay */}
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleFavorite(selectedClub.id);
                     }}
-                    className={`absolute top-3 left-3 z-50 p-2 rounded-full backdrop-blur-md border border-white/10 transition-all active:scale-90 ${
-                      favorites.includes(selectedClub.id) 
-                        ? 'bg-pink-500 text-white border-pink-400' 
+                    className={`absolute top-3 left-3 z-50 p-2 rounded-full backdrop-blur-md border border-white/10 transition-all active:scale-90 ${favorites.includes(selectedClub.id)
+                        ? 'bg-pink-500 text-white border-pink-400'
                         : 'bg-black/40 text-white/70 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <Heart size={16} fill={favorites.includes(selectedClub.id) ? "currentColor" : "none"} />
                   </button>
@@ -402,7 +401,7 @@ function MapContent() {
                   <p className="text-zinc-400 text-[10px] leading-relaxed line-clamp-3">
                     {selectedClub.description || "Exciting nightlife experience in the heart of Cologne."}
                   </p>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-[9px] text-zinc-500">
                       <MapPin size={10} />
@@ -415,7 +414,7 @@ function MapContent() {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => router.push(`/clubs/${selectedClub.id}`)}
                     className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-all group"
                   >
@@ -426,11 +425,11 @@ function MapContent() {
               </div>
             </Popup>
           )}
-          
+
           {clubs.length === 0 && !loading && (
-             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-               <p className="text-zinc-500 text-xs bg-black/40 p-4 rounded-xl">Cologne database is ready.</p>
-             </div>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <p className="text-zinc-500 text-xs bg-black/40 p-4 rounded-xl">Cologne database is ready.</p>
+            </div>
           )}
         </Map>
       </div>
