@@ -1,8 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share2, MapPin, MoreHorizontal, Bookmark, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { 
+  Heart, 
+  Share2, 
+  MapPin, 
+  Loader2, 
+  Plus, 
+  Search, 
+  Pencil,
+  Users,
+  Bookmark as BookmarkIcon 
+} from 'lucide-react';
+import AddContentModal from '@/components/admin/AddContentModal';
 
 interface Event {
   id: string;
@@ -12,28 +24,113 @@ interface Event {
   is_official?: boolean;
   created_at: string;
   clubs?: {
+    id: string;
     name: string;
     address?: string;
   };
 }
 
+const CATEGORIES = ['All', 'Techno', 'House', 'Hip Hop', 'Latin', 'Pop', 'Bar', 'Electronic'];
+
 export default function FeedPage() {
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [userLikes, setUserLikes] = useState<string[]>([]);
+  const [userGoing, setUserGoing] = useState<string[]>([]);
+  const [goingCounts, setGoingCounts] = useState<Record<string, number>>({});
+  const [editData, setEditData] = useState<any>(null);
 
   useEffect(() => {
-    fetchEvents();
+    fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    filterContent();
+  }, [searchQuery, activeCategory, events]);
+
+  const fetchInitialData = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchEvents(),
+      fetchUserLikes(),
+      fetchUserGoing(),
+      fetchGoingCounts(),
+      checkAdmin()
+    ]);
+    setLoading(false);
+  };
+
+  const checkAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profile) {
+      setIsAdmin(profile.is_admin);
+    }
+  };
+
+  const fetchUserLikes = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('event_likes')
+      .select('event_id')
+      .eq('user_id', user.id);
+
+    if (!error && data) {
+      setUserLikes(data.map(l => l.event_id));
+    }
+  };
+
+  const fetchUserGoing = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('event_going')
+      .select('event_id')
+      .eq('user_id', user.id);
+
+    if (!error && data) {
+      setUserGoing(data.map(g => g.event_id));
+    }
+  };
+
+  const fetchGoingCounts = async () => {
+    const { data, error } = await supabase
+      .from('event_going')
+      .select('event_id');
+
+    if (!error && data) {
+      const counts: Record<string, number> = {};
+      data.forEach(item => {
+        counts[item.event_id] = (counts[item.event_id] || 0) + 1;
+      });
+      setGoingCounts(counts);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
-      setLoading(true);
-      // Fetch events with club info joined
       const { data, error } = await supabase
         .from('events')
         .select(`
           *,
           clubs (
+            id,
             name,
             address
           )
@@ -42,114 +139,270 @@ export default function FeedPage() {
 
       if (error) throw error;
       setEvents(data || []);
-    } catch (err: unknown) {
-      const error = err as Error;
-      console.error('Error fetching events:', error.message);
-    } finally {
-      setLoading(false);
+      setFilteredEvents(data || []);
+    } catch (err: any) {
+      console.error('Error fetching events:', err.message);
     }
   };
 
+  const filterContent = () => {
+    let result = [...events];
+
+    if (activeCategory !== 'All') {
+      result = result.filter(e => (e as any).category === activeCategory);
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(e => 
+        e.title.toLowerCase().includes(q) || 
+        (e as any).clubs?.name.toLowerCase().includes(q) ||
+        (e.description && e.description.toLowerCase().includes(q))
+      );
+    }
+
+    setFilteredEvents(result);
+  };
+
+  const toggleLike = async (eventId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth');
+        return;
+      }
+
+      const isLiked = userLikes.includes(eventId);
+      
+      if (isLiked) {
+        await supabase.from('event_likes').delete().eq('user_id', user.id).eq('event_id', eventId);
+        setUserLikes(prev => prev.filter(id => id !== eventId));
+      } else {
+        await supabase.from('event_likes').insert({ user_id: user.id, event_id: eventId });
+        setUserLikes(prev => [...prev, eventId]);
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
+  const toggleGoing = async (eventId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth');
+        return;
+      }
+
+      const isGoing = userGoing.includes(eventId);
+      
+      if (isGoing) {
+        await supabase.from('event_going').delete().eq('user_id', user.id).eq('event_id', eventId);
+        setUserGoing(prev => prev.filter(id => id !== eventId));
+        setGoingCounts(prev => ({
+          ...prev,
+          [eventId]: Math.max(0, (prev[eventId] || 0) - 1)
+        }));
+      } else {
+        await supabase.from('event_going').insert({ user_id: user.id, event_id: eventId });
+        setUserGoing(prev => [...prev, eventId]);
+        setGoingCounts(prev => ({
+          ...prev,
+          [eventId]: (prev[eventId] || 0) + 1
+        }));
+      }
+    } catch (error) {
+      console.error('Error toggling going:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black pt-28 px-6 pb-24">
+        <div className="max-w-2xl mx-auto space-y-8">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-zinc-900/50 rounded-[2.5rem] border border-white/5 overflow-hidden animate-shimmer h-[500px]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col w-full bg-black min-h-full">
-      {/* Top Header */}
-      <div className="sticky top-0 z-30 bg-black/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-zinc-900">
-        <h1 className="text-xl font-black italic tracking-tighter text-white uppercase">PartySpot</h1>
-        <div className="flex gap-4">
-          <Heart size={24} className="text-white" />
-          <MessageCircle size={24} className="text-white" />
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {loading && (
-        <div className="flex-1 flex flex-col items-center justify-center p-12">
-          <Loader2 className="animate-spin text-white mb-2" size={32} />
-          <p className="text-zinc-500 text-xs">Fetching Cologne&apos;s highlights...</p>
-        </div>
-      )}
-
-      {/* Feed List */}
-      <div className="flex flex-col pb-20">
-        {!loading && events.length === 0 && (
-          <div className="p-12 text-center">
-            <p className="text-zinc-500 text-sm">No official events posted yet. Check back soon!</p>
+    <div className="min-h-screen bg-black pt-28 px-6 pb-24 selection:bg-pink-500/30">
+      <div className="max-w-2xl mx-auto space-y-12">
+        {/* Header Section */}
+        <div className="flex justify-between items-center px-2">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-black italic tracking-tighter text-white uppercase leading-none">
+              Feed <span className="text-pink-500">Cologne</span>
+            </h1>
+            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Live from the scene</p>
           </div>
-        )}
+          {isAdmin && (
+            <button 
+              onClick={() => {
+                setEditData(null);
+                setShowAddModal(true);
+              }}
+              className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:bg-zinc-200 transition-all active:scale-90 shadow-lg shadow-white/10"
+            >
+              <Plus size={24} />
+            </button>
+          )}
+        </div>
 
-        {events.map((event) => (
-          <article key={event.id} className="w-full border-b border-zinc-900 mb-4 bg-zinc-950">
-            {/* Post Header */}
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 p-[2px]">
-                  <div className="w-full h-full rounded-full bg-black border-2 border-black overflow-hidden flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">
-                      {event.clubs?.name?.[0] || 'P'}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    {event.clubs?.name}
-                    {event.is_official && (
-                      <span className="bg-blue-500 text-[8px] px-1.5 py-0.5 rounded-full uppercase tracking-widest">Official</span>
-                    )}
-                  </h3>
-                  <div className="flex items-center text-[10px] text-zinc-500">
-                    <MapPin size={10} className="mr-1" />
-                    {event.clubs?.address || 'Cologne, Germany'}
-                  </div>
-                </div>
-              </div>
-              <MoreHorizontal size={20} className="text-zinc-500" />
-            </div>
+        {/* Search & Filter Bar */}
+        <div className="space-y-6">
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-pink-500 transition-colors" size={20} />
+            <input 
+              type="text"
+              placeholder="Search clubs, genres, vibes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-zinc-900/50 border border-white/5 rounded-3xl p-5 pl-14 text-white placeholder-zinc-600 focus:border-white/20 focus:bg-zinc-900 transition-all outline-none text-sm font-medium"
+            />
+          </div>
 
-            {/* Media Content */}
-            <div className="relative aspect-square w-full bg-zinc-900 overflow-hidden">
-              {event.media_url?.endsWith('.mp4') ? (
-                <video 
-                  src={event.media_url} 
-                  className="w-full h-full object-cover" 
-                  autoPlay 
-                  muted 
-                  loop 
-                  playsInline 
-                />
-              ) : (
+          <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`flex-shrink-0 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                  activeCategory === cat 
+                    ? 'bg-white text-black border-white shadow-lg shadow-white/5' 
+                    : 'bg-zinc-900/50 text-zinc-400 border-white/5 hover:border-white/20'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="space-y-8">
+          {filteredEvents.map((event) => (
+            <article key={event.id} className="bg-zinc-900/50 rounded-[2.5rem] border border-white/5 overflow-hidden group hover:border-white/10 transition-all duration-500">
+              <div className="relative aspect-[4/5] overflow-hidden">
                 <img 
-                  src={event.media_url || 'https://images.unsplash.com/photo-1514525253344-f81f3f74412f?q=80&w=600&auto=format&fit=crop'} 
-                  alt={event.title} 
-                  className="w-full h-full object-cover" 
+                  src={event.media_url || 'https://images.unsplash.com/photo-1514525253344-f81f3f74412f?q=80&w=800'} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  alt={event.title}
                 />
-              )}
-            </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-black/20" />
+                
+                {event.is_official && (
+                  <div className="absolute top-6 left-6 px-4 py-2 bg-pink-500 text-[9px] font-black uppercase tracking-widest text-white rounded-xl shadow-2xl backdrop-blur-md border border-white/20">
+                    Official
+                  </div>
+                )}
 
-            {/* Post Actions */}
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <div className="flex gap-4">
-                  <Heart size={24} className="text-white hover:text-pink-500 transition-colors cursor-pointer" />
-                  <MessageCircle size={24} className="text-white hover:text-blue-400 transition-colors cursor-pointer" />
-                  <Share2 size={24} className="text-white hover:text-green-400 transition-colors cursor-pointer" />
+                {isAdmin && (
+                  <button 
+                    onClick={() => {
+                      setEditData(event);
+                      setShowAddModal(true);
+                    }}
+                    className="absolute top-6 right-6 w-10 h-10 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-black transition-all z-20"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                )}
+
+                <button 
+                  onClick={() => event.clubs?.id && router.push(`/clubs/${event.clubs.id}`)}
+                  className="absolute bottom-6 left-6 right-6 flex items-center gap-4 bg-black/40 backdrop-blur-2xl p-4 rounded-3xl border border-white/10 hover:bg-black/60 transition-all text-left z-10"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center font-black text-white italic overflow-hidden">
+                    <img 
+                      src={`https://ui-avatars.com/api/?name=${event.clubs?.name || 'P'}&background=0D0D0D&color=fff&bold=true`} 
+                      className="w-full h-full object-cover"
+                      alt="" 
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-black uppercase italic tracking-tighter leading-tight">{event.clubs?.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                       <MapPin size={10} className="text-pink-500" />
+                       <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-none">{event.clubs?.address || 'Cologne'}</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Interaction Details */}
+              <div className="p-8 space-y-6">
+                <div>
+                  <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter mb-2 leading-tight">
+                    {event.title}
+                  </h2>
+                  <p className="text-zinc-400 text-sm font-medium leading-relaxed italic line-clamp-2">
+                    {event.description}
+                  </p>
                 </div>
-                <Bookmark size={24} className="text-white" />
+
+                <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                  <div className="flex items-center gap-6">
+                    <button 
+                      onClick={() => toggleLike(event.id)}
+                      className="flex items-center gap-2.5 group"
+                    >
+                      <Heart 
+                        className={`transition-all duration-300 ${userLikes.includes(event.id) ? 'fill-pink-500 text-pink-500 scale-110' : 'text-zinc-500 group-hover:text-white'}`} 
+                        size={24} 
+                      />
+                      <span className="text-[10px] font-black text-zinc-500 group-hover:text-white transition-colors uppercase tracking-widest">
+                         {userLikes.includes(event.id) ? 'Liked' : 'Like'}
+                      </span>
+                    </button>
+                    
+                    <button 
+                      onClick={() => toggleGoing(event.id)}
+                      className="flex items-center gap-2.5 group"
+                    >
+                      <Users 
+                        className={`transition-all duration-300 ${userGoing.includes(event.id) ? 'text-blue-400 scale-110' : 'text-zinc-500 group-hover:text-white'}`} 
+                        size={24} 
+                      />
+                      <span className="text-[10px] font-black text-zinc-500 group-hover:text-white transition-colors uppercase tracking-widest">
+                         {goingCounts[event.id] || 0} Going
+                      </span>
+                    </button>
+
+                    <button className="flex items-center gap-2.5 group">
+                      <Share2 className="text-zinc-500 group-hover:text-white transition-colors" size={24} />
+                      <span className="text-[10px] font-black text-zinc-500 group-hover:text-white transition-colors uppercase tracking-widest">Share</span>
+                    </button>
+                  </div>
+                  <span className="text-[9px] text-zinc-700 font-bold uppercase tracking-widest">
+                    {new Date(event.created_at).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
-              
-              {/* Post Details */}
-              <div className="space-y-1">
-                <p className="text-sm text-zinc-300">
-                  <span className="font-bold text-white mr-2">{event.title}</span>
-                  {event.description}
-                </p>
-                <p className="text-[10px] text-zinc-600 uppercase mt-2">
-                  {new Date(event.created_at).toLocaleDateString()}
-                </p>
+            </article>
+          ))}
+
+          {filteredEvents.length === 0 && (
+            <div className="text-center py-24 space-y-4">
+              <div className="inline-block p-6 rounded-full bg-zinc-900 border border-white/5">
+                <Search size={40} className="text-zinc-700" />
               </div>
+              <h3 className="text-white font-black uppercase italic tracking-tighter">No parties found</h3>
             </div>
-          </article>
-        ))}
+          )}
+        </div>
       </div>
+
+      <AddContentModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        type="event"
+        onSuccess={fetchEvents}
+        editData={editData}
+      />
     </div>
   );
 }
