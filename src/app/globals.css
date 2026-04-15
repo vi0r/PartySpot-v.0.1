@@ -2,26 +2,198 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import 'mapbox-gl/dist/mapbox-gl.css';
+@import 'leaflet/dist/leaflet.css';
+
+/* Ensure Leaflet stays below our custom UI */
+.leaflet-container {
+  z-index: 0 !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Remove Leaflet default popup chrome */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .h-safe-screen {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+  }
+}
+
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Mapbox Popup Resets */
+.mapboxgl-popup-content {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 1rem !important;
+}
+
+.mapboxgl-popup-tip {
+  display: none !important;
+}
+
+.mapboxgl-popup-close-button {
+  display: none !important;
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite linear;
+  background: linear-gradient(to right, #18181b 4%, #27272a 25%, #18181b 36%);
+  background-size: 1000px 100%;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 10s linear infinite;
+  white-space: nowrap;
+}
+
+/* Mapbox UI Cleanup */
+.mapboxgl-ctrl-bottom-right {
+  bottom: 85px !important;
+  right: 10px !important;
+  z-index: 10 !important;
+  opacity: 0.3 !important; /* Even more subtle */
+  transition: opacity 0.2s;
+}
+
+.mapboxgl-ctrl-bottom-right:hover {
+  opacity: 0.8 !important;
+}
+
+.mapboxgl-ctrl-bottom-left {
+  display: none !important;
+}
+
+.mapboxgl-ctrl-group {
+  display: none !important;
+}
+
+/* Neon Marker Glow - Softened */
+.marker-glow {
+  filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 5px currentColor);
+  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+
+.marker-glow:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 0 10px currentColor);
+  transform: scale(1.1);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* User Location Pulse */
+.user-location-dot {
+  width: 14px;
+  height: 14px;
+  background: #3b82f6;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #3b82f6;
+  position: relative;
+}
+
+.user-location-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: user-pulse 2s infinite;
+  z-index: -1;
+}
+
+@keyframes user-pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes hype-pulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px currentColor); }
+  50% { transform: scale(1.2); filter: drop-shadow(0 0 15px currentColor); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 2px currentColor); }
+}
+
+.hype-pulse {
+  animation: hype-pulse 1.5s infinite ease-in-out;
+}
+
+/* Fix for possible white flash on load */
+.mapboxgl-canvas {
+  background-color: #000 !important;
+}
+
+/* Swiper Pagination Customization */
+.swiper-pagination-bullet {
+  background: #4b5563 !important; /* gray-600 */
+  opacity: 0.5 !important;
+  width: 8px !important;
+  height: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #3b82f6 !important; /* blue-500 */
+  opacity: 1 !important;
+  transform: scale(1.2) !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Fix for iPhone 14 Pro Max / Dynamic Island */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
