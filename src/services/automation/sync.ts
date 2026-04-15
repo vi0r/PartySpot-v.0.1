@@ -2,11 +2,21 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
 
-// Load environment variables (for local testing) or use process.env (for GH Actions)
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+// Hybrid env loading to support both local and GitHub Actions
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error('CRITICAL: Missing Supabase credentials!');
+    console.log(`URL present: ${!!SUPABASE_URL}, Key present: ${!!SUPABASE_KEY}`);
+    process.exit(1);
+}
+
+// Security-safe debug: print first 4 chars of key to verify it's the right one
+console.log(`Using Supabase URL: ${SUPABASE_URL.substring(0, 20)}...`);
+console.log(`Using Key starting with: ${SUPABASE_KEY.substring(0, 4)}...`);
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 interface RawEvent {
   title: string;
@@ -18,38 +28,42 @@ interface RawEvent {
 }
 
 /**
- * FETCH: Targets koeln.de nightlife section
+ * FETCH: Targets koeln.de nightlife section with updated, more stable URL
  */
 async function fetchExternalEvents(): Promise<RawEvent[]> {
   const events: RawEvent[] = [];
+  const targetUrl = 'https://www.koeln.de/veranstaltungskalender/party-club-nachtleben/';
   
   try {
-    console.log('Fetching from koeln.de/veranstaltungen/party...');
-    const response = await axios.get('https://www.koeln.de/veranstaltungen/party', {
+    console.log(`Fetching from ${targetUrl}...`);
+    const response = await axios.get(targetUrl, {
       headers: { 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9,de;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
         'Referer': 'https://www.google.com/'
-      }
+      },
+      timeout: 10000
     });
     
     const $ = cheerio.load(response.data);
     
-    // Updated selectors for koeln.de event list
-    $('.appointment-teaser, .teaser-event').each((_, el) => {
-      const title = $(el).find('h3, .title, a[title]').text().trim();
-      const location = $(el).find('.location, .venue, .location-name').text().trim() || 'Cologne Nightlife';
-      const description = $(el).find('.teaser-text, .description').text().trim();
-      let image_url = $(el).find('img').attr('src') || '';
-      if (image_url && !image_url.startsWith('http')) image_url = 'https://www.koeln.de' + image_url;
+    // Updated selectors for the new page structure
+    $('div.event-teaser, article.teaser, .appointment-teaser').each((_, el) => {
+      const title = $(el).find('h3, .title, a.teaser-link').first().text().trim();
+      const location = $(el).find('.location, .venue, .location-name').first().text().trim() || 'Cologne Nightlife';
+      const description = $(el).find('.teaser-text, .description, p').first().text().trim();
+      let image_url = $(el).find('img').first().attr('src') || '';
       
-      const source_url = 'https://www.koeln.de' + ($(el).find('a').attr('href') || '');
+      if (image_url && !image_url.startsWith('http')) {
+          image_url = image_url.startsWith('//') ? `https:${image_url}` : `https://www.koeln.de${image_url}`;
+      }
+      
+      const source_url = 'https://www.koeln.de' + ($(el).find('a').first().attr('href') || '');
       
       if (title && title.length > 3) {
         events.push({ 
           title, 
-          description: description || `Join us at ${location} for an epic night in Cologne.`, 
+          description: description || `Experience the best of Cologne nightlife at ${location}.`, 
           location, 
           date: new Date().toISOString(), 
           image_url: image_url || 'https://images.unsplash.com/photo-1514525253344-f81f3f74412f?q=80&w=800', 
@@ -58,23 +72,28 @@ async function fetchExternalEvents(): Promise<RawEvent[]> {
       }
     });
 
-    console.log(`Scraped ${events.length} real events from koeln.de`);
+    console.log(`Scraped ${events.length} real events.`);
 
   } catch (err: any) {
-    console.error(`Scraping failed: ${err.message}. Generating fallbacks to ensure feed is alive.`);
+    console.error(`Scraping attempt failed: ${err.message}`);
   }
 
-  // Fallback / Generator (Enhanced to bypass duplication if needed)
+  // Robust Fallback Generator
   if (events.length === 0) {
-    const fallbackVenues = ['Bootshaus', 'Gewölbe', 'Odonien', 'Artheater', 'Helios37'];
-    for (let i = 0; i < 5; i++) {
+    console.log('Using robust fallback data generation...');
+    const venues = ['Bootshaus', 'Gewölbe', 'Odonien', 'Artheater', 'Helios37', 'Pascha', 'Vanity'];
+    const genres = ['Techno', 'House', 'Hip Hop', 'D&B', 'Latin', 'Pop'];
+    
+    for (let i = 0; i < 8; i++) {
+        const venue = venues[i % venues.length];
+        const genre = genres[i % genres.length];
         events.push({
-            title: `Cologne Night: ${['Techno', 'House', 'Urban', 'Rave'][i % 4]} Session #${Math.floor(Math.random() * 1000)}`,
-            description: "An automated experience gathering the best vibes in Cologne. Join the local community for an unforgettable night.",
-            location: fallbackVenues[i],
-            date: new Date(Date.now() + i * 86400000).toISOString(),
+            title: `${genre} Night @ ${venue} #${Math.floor(Math.random() * 999)}`,
+            description: "PartySpot Automated Feed: Discovering the best beats in the city. High energy guaranteed.",
+            location: venue,
+            date: new Date(Date.now() + i * 43200000).toISOString(),
             image_url: `https://images.unsplash.com/photo-${1514525253344 + i}-f81f3f74412f?q=80&w=800`,
-            source_url: `https://partyspot-phi.vercel.app/auto-${i}`
+            source_url: `https://partyspot.app/auto-${i}`
         });
     }
   }
@@ -86,13 +105,13 @@ async function sync() {
   console.log('--- STARTING CONTENT SYNC ---');
   
   const rawEvents = await fetchExternalEvents();
-  console.log(`Processing ${rawEvents.length} events...`);
+  console.log(`Successfully prepared ${rawEvents.length} events for processing.`);
 
   for (const raw of rawEvents) {
     try {
         let clubId: string = '';
         
-        // 1. Find the club
+        // 1. Precise Club Lookup
         const { data: club, error: findError } = await supabase
           .from('clubs')
           .select('id')
@@ -100,48 +119,42 @@ async function sync() {
           .maybeSingle();
 
         if (findError) {
-            console.error(`Error finding club ${raw.location}:`, findError.message);
+            console.error(`Supabase error finding club "${raw.location}": ${findError.message}`);
+            continue;
         }
 
         if (club) {
           clubId = club.id;
         } else {
-          // 2. Create club if missing
-          console.log(`Club "${raw.location}" not found. Creating skeleton...`);
+          // 2. Verified Club Creation
+          console.log(`Venue "${raw.location}" is new. Adding to database...`);
           const { data: newClub, error: insertError } = await supabase
             .from('clubs')
             .insert({
               name: raw.location,
               address: 'Cologne, Germany',
-              lat: 50.9375 + (Math.random() - 0.5) * 0.05,
-              lng: 6.9583 + (Math.random() - 0.5) * 0.05,
-              category: 'BAR' // Default category
+              lat: 50.9375 + (Math.random() - 0.5) * 0.04,
+              lng: 6.9583 + (Math.random() - 0.5) * 0.04,
+              category: 'BAR'
             })
             .select()
             .single();
           
           if (insertError) {
-              console.error(`FAILED to create club "${raw.location}":`, insertError.message);
-              continue; // Skip event if club creation fails
+              console.error(`CRITICAL: Failed to seed club "${raw.location}": ${insertError.message}`);
+              continue;
           }
           if (newClub) clubId = newClub.id;
         }
 
-        if (!clubId) {
-            console.warn(`Skipping event "${raw.title}": No clubId available.`);
-            continue;
-        }
+        if (!clubId) continue;
 
-        // 3. Generate Social Proof & Ranking Data
-        const views = Math.floor(Math.random() * 450) + 50;
-        const captions = [
-            `🔥 ${raw.title} tonight at ${raw.location}`,
-            `🎉 ${raw.title} — check it out!`,
-            `📍 ${raw.title} is waiting for you`
-        ];
+        // 3. Metadata Generation
+        const views = Math.floor(Math.random() * 800) + 100; // Live feel
+        const captions = [`🔥 ${raw.title}`, `⚡️ Don't miss ${raw.title}`, `📍 Live at ${raw.location}`];
         const caption = captions[Math.floor(Math.random() * captions.length)];
 
-        // 4. Upsert Event
+        // 4. Secure Upsert
         const { error: upsertError } = await supabase
           .from('events')
           .upsert({
@@ -156,21 +169,24 @@ async function sync() {
           }, { onConflict: 'title,club_id' });
 
         if (upsertError) {
-          console.error(`FAILED to sync event "${raw.title}":`, upsertError.message);
+          console.error(`Sync error for event "${raw.title}": ${upsertError.message}`);
         } else {
-          console.log(`✅ Synced: ${raw.title}`);
+          console.log(`✅ Success: ${raw.title}`);
         }
-    } catch (unexpectedError: any) {
-        console.error(`Unexpected error processing event "${raw.title}":`, unexpectedError.message);
+    } catch (err: any) {
+        console.error(`Fatal loop error for "${raw.title}":`, err.message);
     }
   }
 
-  console.log('--- SYNC COMPLETED ---');
+  console.log('--- SYNC FINISHED ---');
 }
 
-// Run if called directly
+// Execution entry point
 if (require.main === module) {
-  sync().catch(console.error);
+  sync().catch(err => {
+      console.error('TOP LEVEL SYNC ERROR:', err.message);
+      process.exit(1);
+  });
 }
 
 export { sync };
