@@ -207,10 +207,19 @@ export default function InboxPage() {
               </div>
             ))
           ) : (
-             <div className="text-center py-16 bg-black/40 border border-dashed border-white/10 rounded-3xl">
-               <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">No friends found</p>
-               <button onClick={() => router.push('/feed')} className="mt-4 px-6 py-2 bg-white/10 text-white rounded-full font-bold text-[10px] uppercase">
-                 Explore Parties
+             <div className="text-center py-16 px-4 animate-in fade-in duration-500">
+               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
+                 <MessageCircle className="text-blue-400" size={36} />
+               </div>
+               <h3 className="text-white font-black text-xl italic uppercase tracking-tight mb-2">No Connections Yet</h3>
+               <p className="text-zinc-500 text-xs font-medium leading-relaxed mb-6 max-w-[220px] mx-auto">
+                 Find people at events and start connecting with the nightlife community.
+               </p>
+               <button
+                 onClick={() => router.push('/users')}
+                 className="px-8 py-3.5 bg-white text-black font-black uppercase text-[10px] tracking-widest rounded-full active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)]"
+               >
+                 Find People
                </button>
              </div>
           )}

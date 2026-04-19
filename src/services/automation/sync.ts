@@ -12,6 +12,16 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
     process.exit(1);
 }
 
+// Detect if anon key is mistakenly used (anon keys start with 'eyJh' and contain 'anon')
+const decodedKey = Buffer.from(SUPABASE_KEY.split('.')[1] || '', 'base64').toString();
+if (decodedKey.includes('"role":"anon"')) {
+    console.error('\n❌ CRITICAL: You are using the ANON key, not the Service Role key!');
+    console.error('   The anon key is blocked by Row Level Security and cannot insert data.');
+    console.error('   ➜  Add SUPABASE_SERVICE_ROLE_KEY to your .env.local file.');
+    console.error('   ➜  Find it in: Supabase Dashboard → Project Settings → API → service_role\n');
+    process.exit(1);
+}
+
 // Security-safe debug: print first 4 chars of key to verify it's the right one
 console.log(`Using Supabase URL: ${SUPABASE_URL.substring(0, 20)}...`);
 console.log(`Using Key starting with: ${SUPABASE_KEY.substring(0, 4)}...`);
@@ -78,24 +88,37 @@ async function fetchExternalEvents(): Promise<RawEvent[]> {
     console.error(`Scraping attempt failed: ${err.message}`);
   }
 
-  // Robust Fallback Generator
+  // High-quality Fallback Generator with real Cologne venues
   if (events.length === 0) {
-    console.log('Using robust fallback data generation...');
-    const venues = ['Bootshaus', 'Gewölbe', 'Odonien', 'Artheater', 'Helios37', 'Pascha', 'Vanity'];
-    const genres = ['Techno', 'House', 'Hip Hop', 'D&B', 'Latin', 'Pop'];
+    console.log('Scraping returned 0 results. Using curated fallback data...');
+    const fallbacks = [
+      { venue: 'Bootshaus', lat: 50.9452, lng: 6.9543, genre: 'Techno', color: '#ec4899', img: 'photo-1598387993281-cecf8b71a8f8' },
+      { venue: 'Gewölbe',   lat: 50.9320, lng: 6.9510, genre: 'House',  color: '#a855f7', img: 'photo-1571204829887-3b8d69e4094d' },
+      { venue: 'Odonien',   lat: 50.9610, lng: 6.9250, genre: 'Rave',   color: '#f97316', img: 'photo-1516450360452-9312f5e86fc7' },
+      { venue: 'Artheater', lat: 50.9570, lng: 6.9190, genre: 'Electronic', color: '#06b6d4', img: 'photo-1504680177321-2e6a879aac86' },
+      { venue: 'Helios37',  lat: 50.9390, lng: 6.9760, genre: 'Techno', color: '#ef4444', img: 'photo-1541339907198-e08759dfc3ef' },
+      { venue: 'Werkstatt', lat: 50.9260, lng: 6.9620, genre: 'Hip Hop', color: '#10b981', img: 'photo-1493174382386-5df8e5e78e7f' },
+      { venue: 'Vanity Club', lat: 50.9380, lng: 6.9490, genre: 'Pop', color: '#f59e0b', img: 'photo-1514525253344-f81f3f74412f' },
+      { venue: 'Der Weiße Hase', lat: 50.9440, lng: 6.9580, genre: 'Drum & Bass', color: '#8b5cf6', img: 'photo-1504196606672-aef5c9cefc92' },
+    ];
     
-    for (let i = 0; i < 8; i++) {
-        const venue = venues[i % venues.length];
-        const genre = genres[i % genres.length];
-        events.push({
-            title: `${genre} Night @ ${venue} #${Math.floor(Math.random() * 999)}`,
-            description: "PartySpot Automated Feed: Discovering the best beats in the city. High energy guaranteed.",
-            location: venue,
-            date: new Date(Date.now() + i * 43200000).toISOString(),
-            image_url: `https://images.unsplash.com/photo-${1514525253344 + i}-f81f3f74412f?q=80&w=800`,
-            source_url: `https://partyspot.app/auto-${i}`
-        });
-    }
+    const titleVariants = [
+      (g: string, v: string) => `${g} Night @ ${v}`,
+      (g: string, v: string) => `${v} presents: ${g} Session`,
+      (g: string, v: string) => `[TONIGHT] ${g} at ${v}`,
+    ];
+    
+    fallbacks.forEach((f, i) => {
+      const titleFn = titleVariants[i % titleVariants.length];
+      events.push({
+        title: titleFn(f.genre, f.venue),
+        description: `Experience the best of Cologne's ${f.genre.toLowerCase()} scene at ${f.venue}. International DJs, world-class sound system, and an unforgettable crowd. Tonight, the city comes alive.`,
+        location: f.venue,
+        date: new Date(Date.now() + i * 43200000).toISOString(),
+        image_url: `https://images.unsplash.com/${f.img}?q=80&w=800`,
+        source_url: `https://partyspot.app/auto-${i}`
+      });
+    });
   }
 
   return events;

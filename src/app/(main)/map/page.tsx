@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Map, Marker, Popup, NavigationControl, GeolocateControl, MapRef } from 'react-map-gl/mapbox';
-import { MapPin, Info, X, ExternalLink, Heart, Plus, Loader2, ArrowRight, Pencil, Users } from 'lucide-react';
+import { MapPin, Info, X, ExternalLink, Heart, Plus, Loader2, ArrowRight, Pencil, Users, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/infrastructure/services/supabase';
 import AddContentModal from '@/presentation/components/admin/AddContentModal';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import dynamic from 'next/dynamic';
+import { useLocationStore } from '@/application/stores/locationStore';
+import FriendMarker from '@/presentation/components/map/FriendMarker';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 
@@ -24,24 +26,12 @@ import { Club } from '@/domain/types';
 import { useAuthStore } from '@/application/stores/authStore';
 import { useDataStore } from '@/application/stores/dataStore';
 
-// Dynamically import Leaflet with SSR disabled as it relies on 'window'
-const LeafletFallback = dynamic(
-  () => import('@/presentation/components/layout/LeafletFallback'),
-  { 
-    ssr: false, 
-    loading: () => (
-      <div className="w-full h-full flex items-center justify-center bg-black">
-        <Loader2 className="animate-spin text-white" />
-      </div>
-    )
-  }
-);
-
 const INITIAL_VIEW_STATE = {
   longitude: 6.9583,
   latitude: 50.9375,
   zoom: 12,
 };
+
 
 export default function MapPage() {
   return (
@@ -75,17 +65,14 @@ function MapContent() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [mapReady, setMapReady] = useState(false);
-  const [webGLSupported, setWebGLSupported] = useState(true);
 
-  // Prevent map initialization race condition & Check WebGL
+  // Friend Tracking Store
+  const { friendsLocations, isGhostMode, setGhostMode, updateMyLocation, subscribeToFriends } = useLocationStore();
+
+  // Prevent map initialization race condition
   useEffect(() => {
     const t = setTimeout(() => {
       setMapReady(true);
-      if (typeof window !== 'undefined' && mapboxgl) {
-        const supported = mapboxgl.supported();
-        console.log("Mapbox WebGL Supported:", supported);
-        setWebGLSupported(supported);
-      }
     }, 150);
     return () => clearTimeout(t);
   }, []);
@@ -124,6 +111,29 @@ function MapContent() {
     fetchUser();
     fetchFavorites();
   }, []);
+
+  // Background Location Watcher
+  useEffect(() => {
+    if (!user || isGhostMode) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        updateMyLocation(latitude, longitude);
+      },
+      (err) => console.warn('Location Watch Error:', err),
+      { enableHighAccuracy: true, distanceFilter: 10 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [user?.id, isGhostMode]);
+
+  // Subscribe to friends
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = subscribeToFriends(user.id);
+    return () => unsubscribe();
+  }, [user?.id]);
 
   const filteredClubs = clubs.filter(club => {
     const clubCat = (club.category || '').toUpperCase().trim();
@@ -195,67 +205,96 @@ function MapContent() {
   };
 
   return (
-    <div className="absolute inset-x-0 top-0 bottom-[80px] bg-background overflow-hidden" id="map-container">
-      {/* Search Header Overlay */}
-      <div className="absolute top-14 left-6 right-6 z-20 flex flex-col gap-2">
-        <div className="flex gap-3">
-          <div className="flex-1 bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl px-5 py-4 flex items-center shadow-2xl">
-            <input
-              type="text"
-              placeholder="Search events in Cologne..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none text-white text-sm focus:ring-0 w-full placeholder:text-zinc-500 font-medium"
-            />
-          </div>
-          {isAdmin && (
+    <div className="fixed inset-0 bg-background overflow-hidden overscroll-none" id="map-container">
+      {/* BOTTOM UI HUD (Unified) */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 z-[90] flex flex-col gap-4 pointer-events-none pb-[calc(1rem+env(safe-area-inset-bottom,16px))] pt-12 bg-gradient-to-t from-black/60 to-transparent"
+      >
+        {/* Category Filters */}
+        <div className="px-6 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x pointer-events-auto">
+          {CATEGORIES.map((cat) => (
             <button
-              onClick={() => {
-                setEditData(null);
-                setShowAddModal(true);
-              }}
-              className="bg-white text-black p-4 rounded-3xl shadow-2xl hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center shrink-0 w-14 h-14"
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shadow-2xl active:scale-95 ${activeCategory === cat
+                  ? 'bg-white text-black border-white'
+                  : 'bg-zinc-900/80 backdrop-blur-xl text-zinc-500 border-white/10 hover:border-white/20'
+                }`}
             >
-              <Plus size={20} />
+              {cat}
             </button>
-          )}
-          <button
-            onClick={handleLocateMe}
-            className={`bg-black/60 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/10 transition-all active:scale-95 flex items-center justify-center shrink-0 w-14 h-14 ${isLocating ? 'text-blue-400 animate-pulse' : 'text-white hover:bg-white hover:text-black'}`}
-          >
-            <MapPin size={20} className="rotate-45" />
-          </button>
+          ))}
         </div>
 
-        {/* Search Results Dropdown List */}
+        {/* Search Results Dropdown List (Now opens ABOVE) */}
         {searchResults.length > 0 && (
-          <div className="bg-black/80 backdrop-blur-3xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-[100] max-h-[280px] overflow-y-auto no-scrollbar animate-in slide-in-from-top-2 duration-200 mt-2">
-            {searchResults.map((club) => (
-              <button
-                key={club.id}
-                onClick={() => {
-                  setSelectedClub(club);
-                  setSearchQuery('');
-                  if (webGLSupported) {
+          <div className="px-6">
+            <div className="bg-black/90 backdrop-blur-3xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-[100] max-h-[280px] overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-2 duration-200 pointer-events-auto pointer-events-auto">
+              {searchResults.map((club) => (
+                <button
+                  key={club.id}
+                  onClick={() => {
+                    setSelectedClub(club);
+                    setSearchQuery('');
                     mapRef.current?.flyTo({
                       center: [club.lng, club.lat],
                       zoom: 15,
                       duration: 1200,
-                      padding: { top: 120, bottom: 0 }
+                      padding: { top: 0, bottom: 200 }
                     });
-                  }
-                }}
-                className="w-full px-5 py-4 flex items-center justify-between hover:bg-white/5 transition-colors border-b border-white/5 last:border-none group"
-              >
-                <div className="flex flex-col items-start gap-0.5">
-                  <span className="text-white text-sm font-bold">{club.name}</span>
-                  <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">{club.category}</span>
-                </div>
-                <ArrowRight size={14} className="text-zinc-600 group-hover:text-white transition-colors" />
-              </button>
-            ))}
+                  }}
+                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-white/5 transition-colors border-b border-white/5 last:border-none group"
+                >
+                  <div className="flex flex-col items-start gap-0.5">
+                    <span className="text-white text-sm font-bold">{club.name}</span>
+                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">{club.category}</span>
+                  </div>
+                  <ArrowRight size={14} className="text-zinc-600 group-hover:text-white transition-colors" />
+                </button>
+              ))}
+            </div>
           </div>
         )}
+
+        <div className="px-6 pointer-events-auto">
+          <div className="flex gap-3 bg-zinc-900/80 backdrop-blur-2xl border border-white/10 p-2.5 rounded-[2.5rem] shadow-2xl touch-none">
+            <div className="flex-1 bg-black/40 border border-white/5 rounded-[2rem] px-5 py-4 flex items-center">
+              <input
+                type="text"
+                placeholder="Search Cologne..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent border-none text-white text-sm focus:ring-0 w-full placeholder:text-zinc-600 font-bold"
+              />
+            </div>
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setEditData(null);
+                  setShowAddModal(true);
+                }}
+                className="bg-white text-black p-4 rounded-[2rem] shadow-lg hover:bg-zinc-200 transition-all active:scale-95 flex items-center justify-center shrink-0 w-14 h-14"
+              >
+                <Plus size={20} />
+              </button>
+            )}
+            <button
+              onClick={handleLocateMe}
+              className={`bg-zinc-800/80 backdrop-blur-xl p-4 rounded-[2rem] shadow-lg border border-white/5 transition-all active:scale-95 flex items-center justify-center shrink-0 w-14 h-14 ${isLocating ? 'text-blue-400 animate-pulse' : 'text-white hover:bg-white hover:text-black'}`}
+            >
+              <MapPin size={20} className="rotate-45" />
+            </button>
+            
+            <button
+              onClick={() => setGhostMode(!isGhostMode)}
+              className={`p-4 rounded-[2rem] shadow-lg border transition-all active:scale-95 flex flex-col items-center justify-center shrink-0 w-14 h-14 ${isGhostMode ? 'bg-zinc-800 text-zinc-500 border-zinc-700' : 'bg-blue-600 text-white border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)]'}`}
+              title={isGhostMode ? 'Ghost Mode: ON' : 'Ghost Mode: OFF'}
+            >
+              <ShieldCheck size={20} />
+              <span className="text-[6px] font-black uppercase mt-0.5">{isGhostMode ? 'Ghost' : 'Live'}</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {errorMsg && (
@@ -266,24 +305,8 @@ function MapContent() {
       )}
 
       <div className="w-full h-full relative">
-        {/* Category Filters */}
-        <div className="absolute top-32 left-0 right-0 z-10 px-6 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth pb-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border shadow-2xl active:scale-95 ${activeCategory === cat
-                  ? 'bg-white text-black border-white'
-                  : 'bg-black/60 backdrop-blur-xl text-zinc-400 border-white/5 hover:border-white/20'
-                }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
 
         {mapReady && (
-          webGLSupported ? (
             <Map
               ref={mapRef}
               {...viewState}
@@ -314,6 +337,21 @@ function MapContent() {
                   <div className="user-location-dot" />
                 </Marker>
               )}
+
+              {/* Friends Locations Markers */}
+              {Object.values(friendsLocations).map((friend) => (
+                <FriendMarker 
+                  key={`friend-${friend.id}`}
+                  id={friend.id}
+                  username={friend.username}
+                  avatarUrl={friend.avatar_url}
+                  lat={friend.lat}
+                  lng={friend.lng}
+                  onClick={() => {
+                    router.push(`/users/${friend.id}`);
+                  }}
+                />
+              ))}
 
               {filteredClubs.map((club) => (
                 <Marker
@@ -388,15 +426,20 @@ function MapContent() {
                         <img
                           src={selectedClub.image_url}
                           alt=""
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover z-10 relative"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
-                      ) : null}
-                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-950">
-                        <MapPin size={32} className="text-white/10" />
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent opacity-60" />
-                      <div className="absolute bottom-2 left-3 right-3">
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 z-10">
+                          <img 
+                            src={`https://ui-avatars.com/api/?name=${selectedClub.name}&background=18181B&color=fff&bold=true&size=200`} 
+                            className="w-full h-full object-cover opacity-60 mix-blend-luminosity"
+                            alt={selectedClub.name}
+                          />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent opacity-80 z-20 pointer-events-none" />
+                      <div className="absolute bottom-2 left-3 right-3 z-30">
                         <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">
                           {selectedClub.name}
                         </h3>
@@ -438,18 +481,6 @@ function MapContent() {
                 </Popup>
               )}
             </Map>
-          ) : (
-            <LeafletFallback 
-              clubs={filteredClubs}
-              clubHype={clubHype}
-              selectedClub={selectedClub}
-              setSelectedClub={setSelectedClub}
-              userLocation={userLocation}
-              favorites={favorites}
-              toggleFavorite={toggleFavorite}
-              activeCategory={activeCategory}
-            />
-          )
         )}
       </div>
 

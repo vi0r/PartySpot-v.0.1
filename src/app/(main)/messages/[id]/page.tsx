@@ -6,6 +6,7 @@ import { supabase } from '@/infrastructure/services/supabase';
 import { MessageCircle, Loader2, ChevronLeft } from 'lucide-react';
 import { useAuthStore } from '@/application/stores/authStore';
 import { useKeyboard } from '@/application/hooks/useKeyboard';
+import { useHaptics } from '@/application/hooks/useHaptics';
 
 export default function ChatPage() {
   const params = useParams();
@@ -23,6 +24,7 @@ export default function ChatPage() {
   
   const isKeyboardVisible = useKeyboard();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const haptics = useHaptics();
 
   // 1. Initial auth check
   useEffect(() => {
@@ -89,10 +91,13 @@ export default function ChatPage() {
               filter: `receiver_id=eq.${user.id}`,
             },
             (payload) => {
+              if (!payload?.new) return;
               if (payload.new.sender_id === id) {
                 setMessages(prev => {
                   // Avoid duplicates
                   if (prev.some(m => m.id === payload.new.id)) return prev;
+                  // Trigger incoming message haptic if we receive a new msg while chat open
+                  haptics.trigger('medium');
                   return [...prev, payload.new];
                 });
                 setTimeout(() => scrollToBottom(), 100);
@@ -129,7 +134,11 @@ export default function ChatPage() {
     return () => {
       isSubscribed = false;
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (channel) supabase.removeChannel(channel);
+      try {
+        if (channel) supabase.removeChannel(channel);
+      } catch (e) {
+        console.warn('[Chat] Channel cleanup error (safe to ignore):', e);
+      }
     };
   }, [user?.id, id, authLoading]);
 
@@ -176,6 +185,7 @@ export default function ChatPage() {
     
     setMessages(prev => [...prev, optimisticMessage]);
     setTimeout(() => scrollToBottom(), 100);
+    haptics.trigger('light');
 
     try {
       const { error } = await supabase

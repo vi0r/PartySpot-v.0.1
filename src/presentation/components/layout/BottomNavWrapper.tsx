@@ -1,19 +1,73 @@
 'use client';
 
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import BottomNav from '@/presentation/components/ui/BottomNav';
+import SideDockNav from '@/presentation/components/ui/SideDockNav';
+import FeedToolbar from '@/presentation/components/feed/FeedToolbar';
 import { useKeyboard } from '@/application/hooks/useKeyboard';
+import { useUIStore } from '@/application/stores/uiStore';
 
 export default function BottomNavWrapper() {
   const pathname = usePathname();
   const isKeyboardVisible = useKeyboard();
+  const { navStyle } = useUIStore();
   
-  // Define routes where the bottom nav should be HIDDEN
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const scrollThreshold = 10; 
+
+  const isFeed = pathname === '/feed';
+
+  // Routes where navigation should be HIDDEN
   const hideOnPaths = ['/', '/auth'];
   const isIndividualChat = pathname.startsWith('/messages/') && pathname !== '/messages';
-  const shouldHide = hideOnPaths.includes(pathname) || isIndividualChat || isKeyboardVisible;
+  const shouldHideCompletely = (hideOnPaths.includes(pathname) || isIndividualChat || isKeyboardVisible) && !isFeed;
 
-  if (shouldHide) return null;
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const diff = currentScrollY - lastScrollY.current;
 
-  return <BottomNav />;
+      if (Math.abs(diff) > scrollThreshold) {
+        if (diff > 0 && currentScrollY > 100) {
+          setIsVisible(false); // Hide on scroll down
+        } else {
+          setIsVisible(true); // Show on scroll up
+        }
+        lastScrollY.current = currentScrollY;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  if (shouldHideCompletely && !isFeed) return null;
+
+  // Render logic based on style
+  if (navStyle === 'side') {
+    return (
+      <>
+        {isFeed && isVisible && (
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[90] pb-[env(safe-area-inset-bottom,20px)] animate-in slide-in-from-bottom-5 duration-500">
+            <FeedToolbar />
+          </div>
+        )}
+        <SideDockNav />
+      </>
+    );
+  }
+
+  // Bottom Nav with sliding visibility
+  return (
+    <div 
+      className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[100] transition-transform duration-500 ease-in-out ${
+        isVisible ? 'translate-y-0' : 'translate-y-full'
+      }`}
+    >
+      {isFeed && <FeedToolbar />}
+      <BottomNav />
+    </div>
+  );
 }

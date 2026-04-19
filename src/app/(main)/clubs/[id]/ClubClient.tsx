@@ -254,11 +254,11 @@ export default function ClubClient() {
            </div>
            <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl flex flex-col gap-1">
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Music Focus</span>
-              <span className="text-white font-black italic uppercase tracking-tighter">Techno & House</span>
+              <span className="text-white font-black italic uppercase tracking-tighter">{(club as any).category || 'Electronic'}</span>
            </div>
            <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl flex flex-col gap-1">
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Dress Code</span>
-              <span className="text-white font-black italic uppercase tracking-tighter">All Black / Kinky</span>
+              <span className="text-white font-black italic uppercase tracking-tighter">All Black</span>
            </div>
            <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl flex flex-col gap-1">
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Door Policy</span>
@@ -269,7 +269,12 @@ export default function ClubClient() {
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Upcoming Events</h3>
-            <button className="text-[9px] font-black text-pink-500 uppercase tracking-widest">View All</button>
+            <button
+              onClick={() => router.push(`/clubs/${id}/events`)}
+              className="text-[9px] font-black text-pink-500 uppercase tracking-widest active:opacity-70"
+            >
+              View All
+            </button>
           </div>
 
           <div className="space-y-3">
@@ -315,10 +320,10 @@ export default function ClubClient() {
         </section>
       </div>
 
-      <div className="fixed bottom-24 left-0 right-0 p-6 pointer-events-none z-50">
+      <div className="fixed bottom-6 left-0 right-0 p-6 pointer-events-none z-50">
         <div className="max-w-[430px] mx-auto pointer-events-auto">
           <button className="w-full bg-white text-black font-black py-4 rounded-[2rem] shadow-2xl shadow-white/10 hover:bg-zinc-200 transition-all active:scale-[0.98] uppercase tracking-tighter italic text-sm">
-            Get tickets
+            Get Tickets
           </button>
         </div>
       </div>

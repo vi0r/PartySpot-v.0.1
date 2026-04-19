@@ -1,17 +1,17 @@
-'use client';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Map, User, Play, MessageCircle } from 'lucide-react';
+import { Home, Map, User, Play, Search, MessageCircle } from 'lucide-react';
+import { useHaptics } from '@/application/hooks/useHaptics';
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const haptics = useHaptics();
 
   const navItems = [
-    { href: '/feed', label: 'Feed', icon: Home },
-    { href: '/map', label: 'Map', icon: Map },
-    { href: '/reels', label: 'Reels', icon: Play },
-    { href: '/messages', label: 'Inbox', icon: MessageCircle },
+    { href: '/feed',    label: 'Feed',    icon: Home },
+    { href: '/map',     label: 'Map',     icon: Map },
+    { href: '/search',  label: 'Search',  icon: Search },
+    { href: '/messages', label: 'Inbox',   icon: MessageCircle },
     { href: '/profile', label: 'Profile', icon: User },
   ];
 
@@ -25,6 +25,7 @@ export default function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
+            onClick={() => haptics.trigger('light')}
             className={`flex flex-col items-center justify-center p-2 transition-all duration-300 ${
               isActive ? 'text-white' : 'text-zinc-500'
             }`}

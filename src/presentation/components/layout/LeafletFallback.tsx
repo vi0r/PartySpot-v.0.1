@@ -192,10 +192,6 @@ export default function LeafletFallback({
           );
         })}
       </MapContainer>
-      
-      <div className="absolute bottom-24 left-4 z-[1000] bg-zinc-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-[8px] font-black text-zinc-400 uppercase tracking-widest pointer-events-none">
-        Safe Mode (Non-WebGL)
-      </div>
     </div>
   );
 }
