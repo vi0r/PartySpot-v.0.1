@@ -58,8 +58,8 @@ export default function VinylStories() {
               key={club.id} 
               className="flex flex-col items-center gap-3 relative group cursor-pointer shrink-0"
               onClick={() => {
-                 const haptics = (window as any).__haptics;
-                 if (haptics) haptics.trigger('light');
+                  const haptics = (window as unknown as { __haptics?: { trigger: (s: string) => void } }).__haptics;
+                  if (haptics) haptics.trigger('light');
                  router.push(`/clubs/${club.id}`);
               }}
               onMouseEnter={() => setHoveredClub(club.id)}

@@ -14,7 +14,6 @@ interface FriendMarkerProps {
 }
 
 export default function FriendMarker({ 
-  id, 
   username, 
   avatarUrl, 
   lat, 

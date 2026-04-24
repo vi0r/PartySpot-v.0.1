@@ -146,6 +146,29 @@ export default function ProfilePage() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background px-6 text-center">
+        <div className="w-24 h-24 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full flex items-center justify-center p-1 mb-8 shadow-2xl">
+          <div className="w-full h-full bg-black rounded-full flex items-center justify-center relative overflow-hidden">
+             <div className="absolute inset-0 bg-white/5" />
+             <span className="text-4xl font-black text-white italic">P</span>
+          </div>
+        </div>
+        <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-3">Your Profile</h2>
+        <p className="text-zinc-500 text-sm font-medium mb-10 max-w-[280px] leading-relaxed">
+          Log in or create an account to customize your profile, set your music vibes, and keep track of your parties.
+        </p>
+        <button 
+          onClick={() => router.push('/auth')} 
+          className="w-full max-w-[250px] bg-white text-black font-black uppercase text-[10px] tracking-widest py-4 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95 transition-all"
+        >
+          Log In
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-background overflow-y-auto overflow-x-hidden no-scrollbar pb-40">
       {/* 
@@ -232,16 +255,38 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-3 px-4">
-                <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase flex items-center justify-center gap-4">
-                  @{user?.username || 'user'}
-                  <button onClick={() => setIsEditing(true)} className="p-2 bg-white/5 rounded-full text-zinc-600 hover:text-white transition-all">
-                    <Edit2 size={16} />
-                  </button>
-                </h2>
-                <p className="text-zinc-400 text-base font-medium leading-relaxed italic">
-                  {user?.bio || "Exploring Cologne's best beats."}
-                </p>
+              <div className="space-y-5 px-4 w-full">
+                <div className="space-y-3">
+                  <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase flex items-center justify-center gap-4">
+                    @{user?.username || 'user'}
+                    <button onClick={() => setIsEditing(true)} className="p-2 bg-white/5 rounded-full text-zinc-600 hover:text-white transition-all">
+                      <Edit2 size={16} />
+                    </button>
+                  </h2>
+                  <p className="text-zinc-400 text-base font-medium leading-relaxed italic">
+                    {user?.bio || "Exploring Cologne's best beats."}
+                  </p>
+                </div>
+                
+                {/* TONIGHT STATUS TOGGLE */}
+                <div className="bg-zinc-900/60 border border-white/5 rounded-3xl p-2 flex">
+                    {['Chilling', 'Going Out', 'Looking for Squad'].map((status) => (
+                      <button 
+                        key={status}
+                        onClick={() => updateProfile({ tonight_status: status })}
+                        className={`flex-1 py-3 px-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                           (user?.tonight_status || 'Chilling') === status 
+                             ? 'bg-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)] text-white' 
+                             : 'text-zinc-500 hover:text-white'
+                        }`}
+                      >
+                         {status === 'Chilling' && '🛌 '}
+                         {status === 'Going Out' && '🔥 '}
+                         {status === 'Looking for Squad' && '👀 '}
+                         {status}
+                      </button>
+                    ))}
+                </div>
               </div>
             )}
           </div>

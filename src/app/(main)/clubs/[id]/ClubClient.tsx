@@ -13,6 +13,7 @@ interface Club {
   description?: string;
   address?: string;
   image_url?: string;
+  category?: string;
 }
 
 interface Event {
@@ -254,7 +255,7 @@ export default function ClubClient() {
            </div>
            <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl flex flex-col gap-1">
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Music Focus</span>
-              <span className="text-white font-black italic uppercase tracking-tighter">{(club as any).category || 'Electronic'}</span>
+              <span className="text-white font-black italic uppercase tracking-tighter">{club.category || 'Electronic'}</span>
            </div>
            <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl flex flex-col gap-1">
               <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Dress Code</span>

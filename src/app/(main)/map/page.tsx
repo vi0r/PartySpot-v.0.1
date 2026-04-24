@@ -319,8 +319,15 @@ function MapContent() {
               failIfMajorPerformanceCaveat={false}
               localIdeographFontFamily="'Helvetica Neue', 'Helvetica', sans-serif"
               onError={(e) => {
+                const message = e.error?.message || 'Mapbox sync error';
                 console.error('Mapbox Error:', e.error);
-                setErrorMsg(`Map Sync Exception: ${e.error?.message?.substring(0, 30)}...`);
+                if (message.includes('Token') || !MAPBOX_TOKEN) {
+                    setErrorMsg('FATAL: Mapbox Token Missing or Invalid');
+                } else if (message.includes('Style')) {
+                    setErrorMsg('Map Style Error: Tiles could not be loaded');
+                } else {
+                    setErrorMsg(`Map Error: ${message.substring(0, 40)}...`);
+                }
               }}
               onLoad={(e) => {
                 setErrorMsg(null);

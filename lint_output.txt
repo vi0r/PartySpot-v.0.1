@@ -1,0 +1,217 @@
+
+> partyspot@0.1.0 lint
+> next lint
+
+
+./src/app/(main)/clubs/[id]/ClubClient.tsx
+41:6  Warning: React Hook useEffect has missing dependencies: 'fetchClubDetails' and 'fetchUser'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+177:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+257:99  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+285:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+305:30  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(main)/clubs/[id]/events/page.tsx
+16:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+17:40  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+22:6  Warning: React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+50:37  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+87:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+104:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+169:32  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/app/(main)/favorites/page.tsx
+6:34  Error: 'ChevronRight' is defined but never used.  @typescript-eslint/no-unused-vars
+6:48  Error: 'ExternalLink' is defined but never used.  @typescript-eslint/no-unused-vars
+23:6  Warning: React Hook useEffect has a missing dependency: 'fetchFavorites'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+49:35  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+86:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(main)/feed/page.tsx
+10:3  Error: 'Loader2' is defined but never used.  @typescript-eslint/no-unused-vars
+15:3  Error: 'MessageCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+16:15  Error: 'BookmarkIcon' is defined but never used.  @typescript-eslint/no-unused-vars
+51:7  Error: 'CATEGORIES' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+63:40  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+64:44  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+70:25  Error: 'requestLocation' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+75:6  Warning: React Hook useEffect has a missing dependency: 'fetchInitialData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+79:6  Warning: React Hook useEffect has a missing dependency: 'filterContent'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+184:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+190:9  Error: 'result' is never reassigned. Use 'const' instead.  prefer-const
+254:34  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+278:34  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+365:47  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+409:19  Error: 'userLocation' is defined but never used.  @typescript-eslint/no-unused-vars
+411:16  Error: 'formatDistance' is defined but never used.  @typescript-eslint/no-unused-vars
+411:32  Error: 'calculateDistance' is defined but never used.  @typescript-eslint/no-unused-vars
+411:51  Error: 'setActiveComments' is defined but never used.  @typescript-eslint/no-unused-vars
+412:4  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+417:16  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+424:11  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+511:67  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+591:21  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/app/(main)/map/page.tsx
+5:30  Error: 'NavigationControl' is defined but never used.  @typescript-eslint/no-unused-vars
+5:49  Error: 'GeolocateControl' is defined but never used.  @typescript-eslint/no-unused-vars
+6:27  Error: 'ExternalLink' is defined but never used.  @typescript-eslint/no-unused-vars
+11:8  Error: 'dynamic' is defined but never used.  @typescript-eslint/no-unused-vars
+55:51  Error: 'loading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+61:44  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+113:6  Warning: React Hook useEffect has missing dependencies: 'fetchClubs', 'fetchHype', and 'fetchUser'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+129:6  Warning: React Hook useEffect has missing dependencies: 'updateMyLocation' and 'user'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+136:6  Warning: React Hook useEffect has missing dependencies: 'subscribeToFriends' and 'user'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+433:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+441:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(main)/messages/[id]/page.tsx
+18:44  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+20:40  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+25:9  Error: 'isKeyboardVisible' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+34:6  Warning: React Hook useEffect has a missing dependency: 'fetchUser'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+41:18  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+114:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+143:6  Warning: React Hook useEffect has a missing dependency: 'haptics'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+245:37  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+274:30  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/(main)/messages/page.tsx
+6:33  Error: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+21:58  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+33:6  Warning: React Hook useEffect has a missing dependency: 'fetchInboxData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+52:24  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+54:33  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+159:40  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+195:43  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(main)/people/page.tsx
+36:40  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+43:6  Warning: React Hook useEffect has a missing dependency: 'fetchPeople'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+97:89  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/app/(main)/profile/page.tsx
+7:28  Error: 'ShieldCheck' is defined but never used.  @typescript-eslint/no-unused-vars
+8:20  Error: 'ExternalLink' is defined but never used.  @typescript-eslint/no-unused-vars
+8:34  Error: 'AlertCircle' is defined but never used.  @typescript-eslint/no-unused-vars
+9:3  Error: 'Bell' is defined but never used.  @typescript-eslint/no-unused-vars
+9:17  Error: 'Layout' is defined but never used.  @typescript-eslint/no-unused-vars
+10:3  Error: 'Share2' is defined but never used.  @typescript-eslint/no-unused-vars
+30:11  Error: 'navStyle' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+30:21  Error: 'setNavStyle' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+33:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+36:56  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+40:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+58:6  Warning: React Hook useEffect has missing dependencies: 'fetchProfileData' and 'user'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+72:35  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+82:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+97:23  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+98:20  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+212:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+368:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+447:49  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+543:41  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(main)/search/page.tsx
+78:41  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+153:101  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+153:109  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+162:101  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+204:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+232:76  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+236:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+244:127  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+268:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/(main)/squads/[id]/page.tsx
+26:21  Error: 'setCountdown' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+28:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+29:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+35:6  Warning: React Hook useEffect has a missing dependency: 'fetchSquad'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+39:21  Error: 'error' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/(main)/squads/new/page.tsx
+64:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+90:54  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/app/(main)/users/[id]/page.tsx
+13:18  Error: 'AnimatePresence' is defined but never used.  @typescript-eslint/no-unused-vars
+21:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+22:38  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+25:54  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+26:44  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+30:6  Warning: React Hook useEffect has a missing dependency: 'fetchProfileData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+54:50  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+58:40  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+59:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+64:54  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+64:62  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+162:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+271:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+285:24  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+313:33  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/(main)/users/page.tsx
+18:70  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+35:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+79:42  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+81:52  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+88:6  Warning: React Hook useEffect has missing dependencies: 'fetchExistingRelations' and 'fetchPopularUsers'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+96:6  Warning: React Hook useEffect has a missing dependency: 'performSearch'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+116:24  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/auth/page.tsx
+29:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+49:19  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/page.tsx
+83:9  Error: 'isLast' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+175:20  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/application/contexts/NotificationContext.tsx
+3:54  Error: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/application/stores/authStore.ts
+5:9  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+9:203  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+51:58  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/application/stores/locationStore.ts
+59:36  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+92:46  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/presentation/components/admin/AddContentModal.tsx
+4:44  Error: 'FileText' is defined but never used.  @typescript-eslint/no-unused-vars
+12:14  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+67:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+136:21  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/presentation/components/feed/EventComments.tsx
+6:18  Error: 'AnimatePresence' is defined but never used.  @typescript-eslint/no-unused-vars
+42:6  Warning: React Hook useEffect has a missing dependency: 'fetchComments'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+57:45  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+109:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/presentation/components/feed/MiniMap.tsx
+29:6  Warning: React Hook useEffect has missing dependencies: 'fetchClubs', 'requestLocation', and 'userLocation'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/presentation/components/feed/SpinningVinyl.tsx
+50:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/presentation/components/feed/VinylStories.tsx
+61:45  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+85:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/presentation/components/layout/ErrorBoundary.tsx
+40:52  Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+
+./src/presentation/components/layout/NotificationHandler.tsx
+12:52  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+13:29  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+20:6  Warning: React Hook useEffect has a missing dependency: 'fetchUser'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+92:6  Warning: React Hook useEffect has a missing dependency: 'user'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/presentation/components/map/FriendMarker.tsx
+17:3  Error: 'id' is defined but never used.  @typescript-eslint/no-unused-vars
+43:13  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules

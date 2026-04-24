@@ -37,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
             Something went wrong
           </h2>
           <p className="text-zinc-500 text-sm mb-8 max-w-xs leading-relaxed">
-            We encountered an unexpected error. Don't worry, your data is safe.
+            We encountered an unexpected error. Don&apos;t worry, your data is safe.
           </p>
           <button
             onClick={() => window.location.reload()}

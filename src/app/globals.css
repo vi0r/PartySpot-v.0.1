@@ -3,25 +3,8 @@
 @tailwind utilities;
 
 @import 'mapbox-gl/dist/mapbox-gl.css';
-@import 'leaflet/dist/leaflet.css';
+@import 'mapbox-gl/dist/mapbox-gl.css';
 
-/* Ensure Leaflet stays below our custom UI */
-.leaflet-container {
-  z-index: 0 !important;
-}
-
-/* Remove Leaflet default popup chrome */
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
-  padding: 0 !important;
-}
-
-.leaflet-popup-content {
-  margin: 0 !important;
-  width: auto !important;
-}
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Map, User, Play, MessageCircle, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Home, Map, User, Users, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { useUIStore } from '@/application/stores/uiStore';
 
 export default function SideDockNav() {
@@ -12,10 +12,10 @@ export default function SideDockNav() {
   const touchStart = useRef<number | null>(null);
 
   const navItems = [
-    { href: '/feed', label: 'Feed', icon: Home },
-    { href: '/map', label: 'Map', icon: Map },
-    { href: '/search', label: 'Search', icon: Search },
-    { href: '/messages', label: 'Inbox', icon: MessageCircle },
+    { href: '/feed',    label: 'Tonight', icon: Home },
+    { href: '/map',     label: 'Map',     icon: Map },
+    { href: '/people',  label: 'People',  icon: Users },
+    { href: '/search',  label: 'Discover',icon: Search },
     { href: '/profile', label: 'Profile', icon: User },
   ];
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Map, User, Play, Search, MessageCircle } from 'lucide-react';
+import { Home, Map, User, Search, Users } from 'lucide-react';
 import { useHaptics } from '@/application/hooks/useHaptics';
 
 export default function BottomNav() {
@@ -8,15 +8,15 @@ export default function BottomNav() {
   const haptics = useHaptics();
 
   const navItems = [
-    { href: '/feed',    label: 'Feed',    icon: Home },
-    { href: '/map',     label: 'Map',     icon: Map },
-    { href: '/search',  label: 'Search',  icon: Search },
-    { href: '/messages', label: 'Inbox',   icon: MessageCircle },
-    { href: '/profile', label: 'Profile', icon: User },
+    { href: '/feed',    label: 'Tonight',  icon: Home },
+    { href: '/map',     label: 'Map',      icon: Map },
+    { href: '/people',  label: 'People',   icon: Users },
+    { href: '/search',  label: 'Discover', icon: Search },
+    { href: '/profile', label: 'Profile',  icon: User },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-black/90 backdrop-blur-xl border-t border-zinc-900 pb-[env(safe-area-inset-bottom,32px)] pt-3 px-6 flex justify-around items-center z-50">
+    <nav className="w-full bg-black/90 backdrop-blur-xl border-t border-zinc-900 pb-[env(safe-area-inset-bottom,20px)] pt-3 px-6 flex justify-around items-center">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = pathname === item.href;

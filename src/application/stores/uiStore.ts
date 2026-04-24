@@ -27,7 +27,7 @@ interface UIState {
 export const useUIStore = create<UIState>()(
   persist(
     (set) => ({
-      navStyle: 'side',
+      navStyle: 'bottom',
       dockSide: 'right',
       isDockOpen: false,
       

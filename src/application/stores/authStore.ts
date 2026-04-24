@@ -1,12 +1,27 @@
 import { create } from 'zustand';
 import { supabase } from '@/infrastructure/services/supabase';
 
+interface Profile {
+  id: string;
+  username?: string;
+  bio?: string;
+  avatar_url?: string;
+  music_genres?: string[];
+  vibe?: string;
+  goal?: string;
+  budget?: string;
+  tonight_status?: string;
+  is_admin?: boolean;
+  image_url?: string;
+  category?: string;
+}
+
 interface AuthState {
-  user: any | null;
+  user: (Record<string, unknown> & Profile) | null;
   isAdmin: boolean;
   loading: boolean;
   fetchUser: () => Promise<void>;
-  updateProfile: (updates: { username?: string; bio?: string; avatar_url?: string; music_genres?: string[] }) => Promise<{ error: any }>;
+  updateProfile: (updates: Partial<Profile>) => Promise<{ error: { message: string } | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -29,7 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Merge profile data into user object for convenience
         set({ 
           user: { ...user, ...profile }, 
-          isAdmin: profile?.is_admin || false 
+          isAdmin: (profile as Profile)?.is_admin || false 
         });
       } else {
         set({ user: null, isAdmin: false });
@@ -48,7 +63,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Sanitize updates: exclude sensitive fields from the shallow merge
     const sanitizedUpdates = { ...updates };
     const forbidden = ['id', 'is_admin', 'created_at', 'email'];
-    forbidden.forEach(key => delete (sanitizedUpdates as any)[key]);
+    forbidden.forEach(key => delete (sanitizedUpdates as Record<string, unknown>)[key]);
 
     const { data, error } = await supabase
       .from('profiles')

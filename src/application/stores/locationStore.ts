@@ -56,7 +56,7 @@ export const useLocationStore = create<LocationStore>((set, get) => ({
         .or(`user_id1.eq.${userId},user_id2.eq.${userId}`);
 
       if (data) {
-        friendsList = data.map((f: any) => f.user_id1 === userId ? f.user_id2 : f.user_id1);
+        friendsList = data.map((f) => f.user_id1 === userId ? f.user_id2 : f.user_id1);
         
         // 2. Fetch initial locations of friends
         const { data: profiles } = await supabase
@@ -66,7 +66,7 @@ export const useLocationStore = create<LocationStore>((set, get) => ({
 
         if (profiles) {
           const locations: Record<string, UserLocation> = {};
-          profiles.forEach(p => {
+          (profiles as unknown as (UserLocation & { is_ghost_mode: boolean })[]).forEach(p => {
             if (p.lat && p.lng && !p.is_ghost_mode) {
               locations[p.id] = p;
             }
@@ -89,7 +89,7 @@ export const useLocationStore = create<LocationStore>((set, get) => ({
           table: 'profiles',
         },
         (payload) => {
-          const updatedUser = payload.new as any;
+          const updatedUser = payload.new as UserLocation & { is_ghost_mode: boolean };
           if (friendsList.includes(updatedUser.id)) {
             set((state) => {
               const newLocations = { ...state.friendsLocations };

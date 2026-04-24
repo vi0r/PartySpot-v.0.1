@@ -19,7 +19,8 @@ export default function PWAInstallPrompt() {
     setIsIOS(isIOSDevice);
 
     // Detect if the app is already in standalone mode (installed)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+      ('standalone' in window.navigator && (window.navigator as Navigator & { standalone: boolean }).standalone === true);
 
     // Show prompt if on iOS SDK, NOT standalone, and hasn't dismissed it
     const hasDismissed = localStorage.getItem('pwa_prompt_dismissed');

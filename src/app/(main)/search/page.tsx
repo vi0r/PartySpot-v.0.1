@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Users, Music2, X, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Users, Music2, X, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/infrastructure/services/supabase';
 import { UserCardSkeleton, ClubCardSkeleton } from '@/presentation/components/ui/Skeleton';
+import { useAuthStore } from '@/application/stores/authStore';
 
 type Tab = 'all' | 'clubs' | 'events' | 'people';
 
@@ -12,8 +13,17 @@ interface Club  { id: string; name: string; category?: string; address?: string;
 interface Event { id: string; title: string; description?: string; media_url?: string; clubs?: Club; }
 interface User  { id: string; username?: string; display_name?: string; avatar_url?: string; }
 
+const VIBE_SCENARIOS = [
+  { id: 'go_crazy', label: 'Go Crazy', icon: '🔥', query: 'Techno', bg: 'from-orange-500/20 to-red-600/20', border: 'border-orange-500/30' },
+  { id: 'meet_people', label: 'Meet People', icon: '💬', query: 'Bar', bg: 'from-blue-500/20 to-cyan-600/20', border: 'border-blue-500/30' },
+  { id: 'chill', label: 'Chill', icon: '🍷', query: 'House', bg: 'from-purple-500/20 to-indigo-600/20', border: 'border-purple-500/30' },
+  { id: 'vip', label: 'VIP', icon: '💎', query: 'Latin', bg: 'from-emerald-500/20 to-green-600/20', border: 'border-emerald-500/30' },
+  { id: 'underground', label: 'Underground', icon: '🦇', query: 'D&B', bg: 'from-zinc-500/20 to-zinc-800/20', border: 'border-zinc-500/30' }
+];
+
 export default function SearchPage() {
   const router = useRouter();
+  const { updateProfile } = useAuthStore();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<Tab>('all');
   const [loading, setLoading] = useState(false);
@@ -21,8 +31,6 @@ export default function SearchPage() {
   const [clubs,  setClubs]  = useState<Club[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [people, setPeople] = useState<User[]>([]);
-
-  const CATEGORIES = ['Techno', 'House', 'Hip Hop', 'D&B', 'Latin', 'Pop', 'Bar', 'Electronic'];
 
   const search = useCallback(async (q: string) => {
     if (!q.trim()) { setClubs([]); setEvents([]); setPeople([]); return; }
@@ -67,12 +75,17 @@ export default function SearchPage() {
   const showEvents = (tab === 'all' || tab === 'events') && events.length > 0;
   const showPeople = (tab === 'all' || tab === 'people') && people.length > 0;
 
+  const handleVibeSelect = async (vibe: typeof VIBE_SCENARIOS[number]) => {
+    haptics.trigger('medium');
+    await updateProfile({ vibe: vibe.label });
+    router.push(`/feed?vibe=${vibe.label}`);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top, 16px)' }}>
-      
       {/* Header */}
       <div className="px-5 pt-6 pb-3">
-        <h1 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Search</h1>
+        <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">Discover</h1>
 
         {/* Search Input */}
         <div className="relative">
@@ -82,8 +95,8 @@ export default function SearchPage() {
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Clubs, events, people..."
-            className="w-full bg-zinc-900 border border-white/5 rounded-2xl py-4 pl-11 pr-11 text-white text-sm placeholder:text-zinc-600 focus:border-white/15 focus:outline-none transition-colors font-medium"
+            placeholder="Search clubs, people, events..."
+            className="w-full bg-zinc-900 border border-white/5 rounded-[2rem] py-4 pl-11 pr-11 text-white text-sm placeholder:text-zinc-600 focus:border-white/15 focus:outline-none transition-colors font-medium"
           />
           {query && (
             <button onClick={() => setQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors">
@@ -141,33 +154,30 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* No query: show category grid */}
+        {/* No query: show VIBE SCENARIOS */}
         {!query.trim() && !loading && (
-          <div className="space-y-6 pt-2">
-            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Browse by vibe</p>
-            <div className="grid grid-cols-2 gap-3">
-              {CATEGORIES.map((cat, i) => {
-                const colors = [
-                  'from-pink-900/70 to-pink-900/30 border-pink-800/30',
-                  'from-purple-900/70 to-purple-900/30 border-purple-800/30',
-                  'from-blue-900/70 to-blue-900/30 border-blue-800/30',
-                  'from-green-900/70 to-green-900/30 border-green-800/30',
-                  'from-orange-900/70 to-orange-900/30 border-orange-800/30',
-                  'from-cyan-900/70 to-cyan-900/30 border-cyan-800/30',
-                  'from-red-900/70 to-red-900/30 border-red-800/30',
-                  'from-indigo-900/70 to-indigo-900/30 border-indigo-800/30',
-                ];
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => setQuery(cat)}
-                    className={`bg-gradient-to-br ${colors[i % colors.length]} border rounded-2xl p-4 text-left transition-all active:scale-95 hover:border-white/20`}
-                  >
-                    <Music2 size={20} className="text-white/60 mb-2" />
-                    <p className="text-white font-black uppercase text-sm tracking-tighter">{cat}</p>
-                  </button>
-                );
-              })}
+          <div className="space-y-6 pt-6">
+            <div className="flex items-center gap-2">
+               <Sparkles className="text-pink-500" size={20} />
+               <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">What's your vibe tonight?</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              {VIBE_SCENARIOS.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => handleVibeSelect(v)}
+                  className={`bg-gradient-to-r ${v.bg} border ${v.border} rounded-3xl p-6 text-left transition-all active:scale-95 group flex items-center justify-between`}
+                >
+                  <div className="flex items-center gap-4">
+                     <span className="text-3xl">{v.icon}</span>
+                     <div>
+                       <p className="text-white font-black uppercase text-xl italic tracking-tighter">{v.label}</p>
+                       <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mt-1">Select Scenario</p>
+                     </div>
+                  </div>
+                  <ArrowRight className="text-white/30 group-hover:text-white transition-colors" />
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -219,7 +229,7 @@ export default function SearchPage() {
                   {events.map(event => (
                     <button
                       key={event.id}
-                      onClick={() => router.push(`/clubs/${(event.clubs as any)?.id || ''}`)}
+                      onClick={() => router.push(`/clubs/${(event.clubs as Club)?.id || ''}`)}
                       className="w-full flex items-center gap-3 bg-zinc-900/60 border border-white/5 rounded-2xl p-3 text-left hover:border-white/10 transition-all active:scale-[0.98] group"
                     >
                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-800 shrink-0">
@@ -231,7 +241,7 @@ export default function SearchPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-white font-black text-sm uppercase tracking-tight truncate">{event.title}</p>
-                        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider truncate">{(event.clubs as any)?.name || 'Event'}</p>
+                        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider truncate">{(event.clubs as Club)?.name || 'Event'}</p>
                       </div>
                       <ArrowRight size={16} className="text-zinc-700 group-hover:text-white shrink-0 transition-colors" />
                     </button>

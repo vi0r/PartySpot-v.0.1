@@ -46,28 +46,25 @@ export default function BottomNavWrapper() {
   if (shouldHideCompletely && !isFeed) return null;
 
   // Render logic based on style
-  if (navStyle === 'side') {
-    return (
-      <>
-        {isFeed && isVisible && (
-          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[90] pb-[env(safe-area-inset-bottom,20px)] animate-in slide-in-from-bottom-5 duration-500">
-            <FeedToolbar />
-          </div>
-        )}
-        <SideDockNav />
-      </>
-    );
-  }
-
-  // Bottom Nav with sliding visibility
+  // Render both if it's the feed for maximum accessibility
   return (
-    <div 
-      className={`fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[100] transition-transform duration-500 ease-in-out ${
-        isVisible ? 'translate-y-0' : 'translate-y-full'
-      }`}
-    >
-      {isFeed && <FeedToolbar />}
-      <BottomNav />
-    </div>
+    <>
+      {navStyle === 'side' && !isFeed && <SideDockNav />}
+      <div 
+        className={`fixed bottom-0 inset-x-0 mx-auto w-full max-w-[430px] z-[100] transition-transform duration-500 ease-in-out ${
+          isVisible ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        <div className="flex flex-col w-full">
+          {isFeed && (
+            <div className="px-4 pb-2">
+              <FeedToolbar />
+            </div>
+          )}
+          {navStyle === 'bottom' && <BottomNav />}
+        </div>
+      </div>
+    </>
   );
 }
+

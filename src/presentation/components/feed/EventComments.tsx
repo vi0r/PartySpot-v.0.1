@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/infrastructure/services/supabase';
 import { Send, X, MessageCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface Comment {
   id: string;
@@ -39,9 +39,9 @@ export default function EventComments({ eventId, onClose }: { eventId: string; o
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [eventId]);
+  }, [eventId, fetchComments]);
 
-  const fetchComments = async () => {
+  const fetchComments = React.useCallback(async () => {
     const { data, error } = await supabase
       .from('event_comments')
       .select(`
@@ -54,8 +54,8 @@ export default function EventComments({ eventId, onClose }: { eventId: string; o
       .eq('event_id', eventId)
       .order('created_at', { ascending: true });
 
-    if (!error && data) setComments(data as any);
-  };
+    if (!error && data) setComments(data as unknown as Comment[]);
+  }, [eventId]);
 
   const postComment = async () => {
     if (!newComment.trim()) return;
